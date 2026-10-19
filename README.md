@@ -83,11 +83,16 @@ Training a custom classifier requires hundreds of thousands of labeled samples a
 ## Features
 
 - **Real-time** — 30fps hand tracking with sub-50ms classification latency
+- **Two-hand detection** — MediaPipe tracks both hands simultaneously; second hand renders in purple
+- **Text → Sign translator** — type anything, the app shows each ASL sign one by one
+- **Presentation mode** — fullscreen sign display; hand the phone to a deaf person who taps to advance
+- **Camera flip** — switch front / rear camera with one tap (great for propping phone up)
 - **Offline-first** — works with no internet after first load (PWA)
 - **Fully private** — zero data leaves your device, no server, no storage
 - **Text-to-speech** — chain letters into words, speak them aloud
 - **Multilingual UI** — English, Russian, Uzbek
 - **26 signs** — ASL letters A–Y, numbers 1–5, common words (HELLO, LOVE, YES, NO, HELP, THANK YOU)
+- **Mobile ready** — works on iOS Safari and Android Chrome; prop phone up + use both hands
 
 ---
 
