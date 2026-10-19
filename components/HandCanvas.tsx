@@ -62,18 +62,8 @@ function drawHand(ctx: CanvasRenderingContext2D, landmarks: { x: number; y: numb
   }
 }
 
-const MEDIAPIPE_CDN = 'https://unpkg.com/@mediapipe/tasks-vision@0.10.14/vision_bundle.min.js'
-
-declare global {
-  interface Window {
-    mpTasksVision?: {
-      HandLandmarker?: any
-      FilesetResolver?: any
-    }
-    FilesetResolver?: any
-    HandLandmarker?: any
-  }
-}
+const MEDIAPIPE_MJS = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs'
+const MEDIAPIPE_WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
 
 export default function HandCanvas({ onReady, onError, onHandDetected, onClassification }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -125,15 +115,16 @@ export default function HandCanvas({ onReady, onError, onHandDetected, onClassif
     let cancelled = false
 
     async function init() {
-      // Load MediaPipe Tasks Vision via CDN
-      await new Promise<void>((resolve, reject) => {
-        if (typeof window.HandLandmarker !== 'undefined') { resolve(); return }
-        const script = document.createElement('script')
-        script.src = MEDIAPIPE_CDN
-        script.onload = () => resolve()
-        script.onerror = () => reject(new Error('Failed to load MediaPipe'))
-        document.head.appendChild(script)
-      })
+      // Load MediaPipe Tasks Vision via ES module dynamic import
+      let FilesetResolver: any, HandLandmarker: any
+      try {
+        const mp = await (Function('u', 'return import(u)')(MEDIAPIPE_MJS)) as any
+        FilesetResolver = mp.FilesetResolver
+        HandLandmarker = mp.HandLandmarker
+      } catch {
+        onError('Failed to load hand tracking AI. Check your internet and try again.')
+        return
+      }
 
       if (cancelled) return
 
@@ -143,8 +134,8 @@ export default function HandCanvas({ onReady, onError, onHandDetected, onClassif
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         })
-      } catch (err) {
-        onError('Camera access denied. Please allow camera permissions.')
+      } catch {
+        onError('Camera access denied. Please allow camera permissions and try again.')
         return
       }
 
@@ -158,12 +149,7 @@ export default function HandCanvas({ onReady, onError, onHandDetected, onClassif
 
       // Initialize HandLandmarker
       try {
-        const FilesetResolver = window.FilesetResolver
-        const HandLandmarker = window.HandLandmarker
-
-        const vision = await FilesetResolver.forVisionTasks(
-          'https://unpkg.com/@mediapipe/tasks-vision@0.10.14/wasm'
-        )
+        const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM)
         handLandmarkerRef.current = await HandLandmarker.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
@@ -176,7 +162,7 @@ export default function HandCanvas({ onReady, onError, onHandDetected, onClassif
           minTrackingConfidence: 0.5,
         })
       } catch (err) {
-        onError('Failed to initialize hand tracking. Try refreshing or use Chrome.')
+        onError('Failed to initialize hand tracking. Try refreshing or use Chrome / Edge.')
         return
       }
 

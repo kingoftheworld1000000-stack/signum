@@ -148,22 +148,28 @@ export default function SignPage() {
           <div className="relative rounded-3xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:flex-1 min-h-[300px]"
             style={{ background: 'var(--bg-elevated)', border: `1px solid ${handVisible ? 'var(--border-glow)' : 'var(--border)'}`, transition: 'border-color 0.3s' }}>
 
-            <HandCanvas
-              onReady={onReady}
-              onError={onError}
-              onHandDetected={onHandDetected}
-              onClassification={onClassification}
-            />
+            {/* Only mount HandCanvas after user clicks start */}
+            {phase !== 'idle' && (
+              <HandCanvas
+                onReady={onReady}
+                onError={onError}
+                onHandDetected={onHandDetected}
+                onClassification={onClassification}
+              />
+            )}
 
             {/* Overlay: not started */}
             {phase === 'idle' && !loadError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 animate-fade-in">
+              <button
+                onClick={() => { setLoadError(null); setPhase('loading') }}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-4 animate-fade-in w-full cursor-pointer"
+              >
                 <div className="text-6xl">✋</div>
                 <p className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
                   {t(locale, 'startInterpreting')}
                 </p>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Allow camera access to begin</p>
-              </div>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Click to allow camera access</p>
+              </button>
             )}
 
             {/* Overlay: loading */}
@@ -180,9 +186,16 @@ export default function SignPage() {
 
             {/* Overlay: error */}
             {loadError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
                 <div className="text-4xl">⚠️</div>
                 <p className="text-sm" style={{ color: 'var(--text-sub)' }}>{loadError}</p>
+                <button
+                  onClick={() => { setLoadError(null); setPhase('loading') }}
+                  className="px-5 py-2 rounded-xl text-sm font-semibold"
+                  style={{ background: 'var(--accent)', color: '#000' }}
+                >
+                  Try again
+                </button>
               </div>
             )}
 
